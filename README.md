@@ -6,10 +6,13 @@ FXの自動売買ツール(開発途中)
 $ git clone https://github.com/regnan/fx-auto-trade
 
 2. virtualenv構築
-$ virtualenv fx-auto-trade-env1
+$ python -m venv venv
 
-3. requirement.txtからpipでパッケージを入れる
+3. 仮想環境をアクティベート
+$ \venv\Scripts\activate.bat
+
+4. requirement.txtからpipでパッケージを入れる
 $ pip install -r requirements.txt
 
-4. 同期完了
+5. 同期完了
 $ pip list
