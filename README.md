@@ -1,7 +1,7 @@
 # fx-auto-trade
 FXの自動売買ツール(開発途中)
 
-# 仮想環境構築手順
+## 仮想環境構築手順
 1. git clone
 $ git clone https://github.com/regnan/fx-auto-trade
 
