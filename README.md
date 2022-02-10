@@ -1,15 +1,15 @@
-#fx-auto-trade
-FX‚Ì©“®”„”ƒƒc[ƒ‹(ŠJ”­“r’†)
+# fx-auto-trade
+FXã®è‡ªå‹•å£²è²·ãƒ„ãƒ¼ãƒ«(é–‹ç™ºé€”ä¸­)
 
-#‰¼‘zŠÂ‹«\’zè‡
+# ä»®æƒ³ç’°å¢ƒæ§‹ç¯‰æ‰‹é †
 1. git clone
 $ git clone https://github.com/regnan/fx-auto-trade
 
-2. virtualenv\’z
+2. virtualenvæ§‹ç¯‰
 $ virtualenv fx-auto-trade-env1
 
-3. requirement.txt‚©‚çpip‚ÅƒpƒbƒP[ƒW‚ğ“ü‚ê‚é
+3. requirement.txtã‹ã‚‰pipã§ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸ã‚’å…¥ã‚Œã‚‹
 $ pip install -r requirements.txt
 
-4. “¯ŠúŠ®—¹
+4. åŒæœŸå®Œäº†
 $ pip list
