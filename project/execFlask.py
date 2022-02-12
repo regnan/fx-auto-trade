@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request
-from datetime import datetime,time
-import numpy as np
+from datetime import datetime
 
 app = Flask(__name__)
 

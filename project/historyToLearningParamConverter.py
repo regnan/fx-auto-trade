@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-import os
-from datetime import datetime,time
-import numpy as np
 import matplotlib.pyplot as plt
 import talib as ta
 from enum import Enum
+from datetime import datetime
 
-from historyLoader import HistoryLoader
-from historyData import HistoryColumns, HistoryData
+import historyLoader
+from historyData import HistoryPeriods
 
 class CSV_HEADER(Enum):
     TIME = 0
@@ -18,18 +16,22 @@ class CSV_HEADER(Enum):
     VOLUME = 5
 
 def currentDataConvert():
-    return 'OK'
+    nowDatetime = datetime.now()
+    historyData = historyLoader.loadMonthlyData(nowDatetime.year, nowDatetime.month, HistoryPeriods.M5)
+    return convert(historyData)
 
 def allDataConvert():
     #historyData = HistoryData(historyLoader.HistoryLoader.loadAllData())
-    historyLoader = HistoryLoader()
-    historyData = historyLoader.loadMonthlyData(2022, 1)
+    historyData = historyLoader.loadMonthlyData(2022, 1, HistoryPeriods.M5)
+    return convert(historyData)
+
+def convert(historyData):
     close = historyData.close
 
     upper1, middle,lower1 = ta.BBANDS(close, timeperiod=2500, nbdevup=1, nbdevdn=1, matype=0)
     upper2, middle2, lower2 = ta.BBANDS(close, timeperiod=2500, nbdevup=2, nbdevdn=2, matype=0)
     upper3, middle3, lower3 = ta.BBANDS(close, timeperiod=2500, nbdevup=3, nbdevdn=3, matype=0)
-
+    
     plt.plot(middle,label='price',color='k')
     plt.plot(upper1,label='upper1',color='b')
     plt.plot(lower1,label='lower1',color='b')
@@ -41,7 +43,6 @@ def allDataConvert():
     plt.ylabel('price')
     plt.legend()
     plt.show()
-    return 'OK'
-
+    return historyData
 
 allDataConvert()
