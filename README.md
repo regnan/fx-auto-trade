@@ -16,6 +16,7 @@ $ pip install -r requirements.txt
 
 5. TA-Libをインストール
 https://www.lfd.uci.edu/~gohlke/pythonlibs/#ta-lib
+$ python -m pip install TA_Lib-0.4.20-cp39-cp39-win_amd64.whl
 
 6. 同期完了
 $ pip list
