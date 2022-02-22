@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 from asyncio.windows_events import NULL
-from fileinput import filename
-from multiprocessing.sharedctypes import Value
 from datetime import datetime
-from tokenize import Double
-from matplotlib.pyplot import axis
 import numpy as np
 from enum import Enum
+import logger
 
 class HistoryPeriods(Enum):
     M1 = 1
@@ -45,6 +42,7 @@ class RemakeMethods(Enum):
 class HistoryData():
 
     def __init__(self, historyData, historyPeriod):
+        logger.log("History data create start")
         if historyPeriod not in [e for e in HistoryPeriods]:
             return NULL
 
@@ -68,6 +66,8 @@ class HistoryData():
         self.low = self.__load__(HistoryColumns.LOW, np.double, RemakeMethods.MIN)
         self.close = self.__load__(HistoryColumns.CLOSE, np.double, RemakeMethods.LAST)
         self.volume = self.__load__(HistoryColumns.VOLUME, np.double, RemakeMethods.SUM)
+        
+        logger.log("History data create complete")
     
     #任意の列を抽出後に指定された期間の足に作り直す
     def __load__(self, historyColumn, dtype, historyMethod):

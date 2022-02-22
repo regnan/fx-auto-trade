@@ -11,10 +11,15 @@
 [Ll]ocal
 [Ss]cripts
 pyvenv.cfg
-.venv
-files
+/venv/
+/files/
+/2ckassHistory/
+/3ckassHistory/
+/files/
+/my_model/
 TA_Lib-0.4.24-cp310-cp310-win_amd64.whl
 pip-selfcheck.json
-
+__pycache__/
+learning.spec
 
 # End of https://www.gitignore.io/api/virtualenv
