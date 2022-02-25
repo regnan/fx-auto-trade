@@ -1,18 +1,24 @@
 # -*- coding: utf-8 -*-
-import historyLoader
 import numpy as np
-from historyData import HistoryPeriods
-from attribute import Attribute
-from models import PredictModel
+import historicaldata.historical_loader as HistoryLoader
+from historicaldata.historical_data import TimeBarPeriods
+from historicaldata.attribute import Attribute
+import models.model_loader as model_loader
 import logger
+from models.models import ResultTypes
 
-def predict():
+def main():
+    predict()
+
+def predict3():
     logger.log("predict start")
-    history = historyLoader.loadPredictHistory(HistoryPeriods.M1)
-    attribute = Attribute(history)
-    model = PredictModel()
-    predictions = model.predict(attribute)
-    result = np.argmax(predictions[0])
+    historical_data = HistoryLoader.loadPredict()
+    time_bar = historical_data.load_time_bar(TimeBarPeriods.M1)
+    attribute = Attribute(time_bar)
+    model = model_loader.load(attribute)
+    predictions = model.predict()
+    result = predictions[-1]
+    print(predictions)
     #print(predictions[-1][0] >= 0.5)
     #return model.result()
     logger.log("predict start")
@@ -24,13 +30,29 @@ def predict():
     else: 
         return ""
 
+def predict():
+    logger.log("predict start")
+    historical_data = HistoryLoader.loadPredict()
+    time_bar = historical_data.load_time_bar(TimeBarPeriods.M1)
+    attribute = Attribute(time_bar)
+    model = model_loader.load(attribute)
+    predictions = model.predict()
+    result = model.predict_result_type()
+
+    if result == ResultTypes.BUY:
+        return True
+    elif result == ResultTypes.SELL:
+        return False
+    else: 
+        return ""
+
 def predict2():
     logger.log("predict complete")
-    history = historyLoader.loadPredictHistory(HistoryPeriods.M1)
-    attribute = Attribute(history)
-    model = PredictModel()
+    historical_data = HistoryLoader.loadPredict()
+    time_bar = historical_data.load_time_bar(TimeBarPeriods.M1)
+    attribute = Attribute(time_bar)
+    model = model_loader.load()
     predictions = model.predict(attribute)
-
 
     # print(predictions[-1][0] >= 0.5)
     # predictions = np.array(predictions)
@@ -43,7 +65,6 @@ def predict2():
     train = [np.argmax(i) for i in attribute.result2]
     result = [np.argmax(i) for i in predictions]
 
-
     isTrueOk = np.array(train == result)
     isOk = np.array(train == result)
     isNg = (train != result)
@@ -53,8 +74,8 @@ def predict2():
     print(np.count_nonzero(isTrueOk == True))
     print(np.count_nonzero(isOk == True))
     print(np.count_nonzero(isNg == True))
-    
 
     logger.log("predict complete")
 
-predict2()
+if __name__ == '__main__':
+    main()

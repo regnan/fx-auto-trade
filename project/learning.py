@@ -1,33 +1,36 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-import historyLoader
-from historyData import HistoryPeriods
-from attribute import Attribute
-from models import LearningModel
+import historicaldata.historical_loader as HistoricalLoader
+from historicaldata.historical_data import TimeBarPeriods, HistoricalData
+from historicaldata.attribute import Attribute
+from settings import LearningPeriods
+import models.model_loader as model_loader
+import settings
+
+def main():
+    if settings.LEARNING_PERIOD == LearningPeriods.ALL:
+        learningAll()
+    if settings.LEARNING_PERIOD == LearningPeriods.CURRENT:
+        learningCurrentMonth()
 
 def learningCurrentMonth():
-    nowDatetime = datetime.now()
-    historyData = historyLoader.loadMonthlyHistory(nowDatetime.year, int(1), HistoryPeriods.M5)
-    learning(Attribute(historyData))
+    now_datatime = datetime.now()
+    learning(HistoricalLoader.loadMonthly(now_datatime.year, int(1)))
 
 def learningAll():
-    historyData = historyLoader.loadAllHistory(HistoryPeriods.M1)
-    learning(Attribute(historyData))
+    learning(HistoricalLoader.loadAll())
 
-def learning(attribute):
-    model = LearningModel(attribute.paramCount)
-    model.learning(attribute)
-    model.save()
+def learning(historical_data:HistoricalData):
+    time_bar = historical_data.load_time_bar(TimeBarPeriods.M1)
+    attribute = Attribute(time_bar)
+    model = model_loader.load(attribute)
+    model.learning()
 
-def learningFirstRate(): 
-    historyData = historyLoader.loadAllHistory(HistoryPeriods.M1)
-    attribute = Attribute(historyData)
-    model = LearningModel(attribute.paramCount)
-    model.learning(attribute)
+# def learningFirstRate(): 
+#     attribute = Attribute(HistoricalLoader.loadAll(TimeBarPeriods.M1))
+#     model = HighLowStayModel()
+#     model.learning(attribute)
 
-
-#learningCurrentMonth()
-learningAll()
-
-#learningFirstRate()
+if __name__ == '__main__':
+    main()
