@@ -20,15 +20,15 @@ class HighLowStayModelSettings(ModelSettings):
 
     @property
     def batch_size(self) -> int:
-        return 2048
+        return 1024
 
     @property
     def epochs(self) -> int:
-        return 1
+        return 2000
 
     @property
     def callbacks(self) -> list:
-        earlyStopping = EarlyStopping(monitor='loss', min_delta=0.0001, patience=200)
+        earlyStopping = EarlyStopping(monitor='loss', min_delta=0.0001, patience=500)
         checkpoint = ModelCheckpoint(filepath=os.path.join(self.model_current_dir, "model-{epoch:02d}.h5"), monitor='loss', save_best_only=True)
         # reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.9, patience=2, min_delta=0.00001)
         # return [earlyStopping, checkpoint, self.learning_lr, reduce_lr]
@@ -37,3 +37,7 @@ class HighLowStayModelSettings(ModelSettings):
     @property
     def metrics(self) -> str:
         return "accuracy"
+
+    @property
+    def time_step(self) -> int:
+        return 100

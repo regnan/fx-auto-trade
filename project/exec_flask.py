@@ -3,6 +3,7 @@ from flask import Flask
 import predict
 
 app = Flask(__name__)
+request_count = 0
 
 @app.route("/")
 def root():
@@ -12,9 +13,13 @@ def root():
 def reset():
     return ""
 
-@app.route("/ontick")
-def ontick():
-    result =  predict.predict()
+@app.route("/ontick//<int:timeFrame>")
+def ontick(timeFrame):
+    # global request_count 
+    # request_count = request_count + 1
+    # if request_count < 100:
+    #     return ""
+    result =  predict.predict(timeFrame)
     print("predictresult:" + str(result))
     return str(result)
 

@@ -13,7 +13,7 @@ class Attribute():
         logger.log("History convert to attribute start")
         self.__history_data = history_data
         self.period = history_data.period
-        self.nun_value_index = 50
+        self.nun_value_index = 65
         
         self.year = np.array([date[0:4] for date in history_data.date])
         self.month = np.array([date[5:7] for date in history_data.date])
@@ -80,7 +80,7 @@ class Attribute():
         self.__addSma(20)
         self.__addSma(25)
         self.__addSma(50)
-
+        self.trend_line = np.array(ta.HT_TRENDLINE(self.close))
         self.__addMacd(12, 26, 9)
         
         logger.log("History convert to attribute complete")

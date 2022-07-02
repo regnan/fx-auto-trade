@@ -58,6 +58,20 @@ class Models(metaclass=ABCMeta):
         self.transformed_ytrain = self.ytrain_scaler.transform(self.y_train)
         logger.log("Attribute transform complete")
 
+        self.transformed_xtrain,self.transformed_ytrain = self.create_dataset(self.transformed_xtrain, self.transformed_ytrain, self.model_settings.time_step)
+
+    def create_dataset(self, dataset,y_t , look_back=1):
+        dataX, dataY = [], []
+        for i in range(len(dataset)-look_back-1):
+            xset = []
+            for j in range(dataset.shape[1]):
+                a = dataset[i:(i+look_back), j]
+                xset.append(a)
+            dataY.append(y_t[i + look_back])      
+            dataX.append(xset)
+        return np.array(dataX), np.array(dataY)
+
+
     @abstractmethod
     def generate_learning_param(self, attribute:Attribute) -> LearningParam:
         pass
@@ -108,7 +122,8 @@ class Models(metaclass=ABCMeta):
         batch_size = m_settings.batch_size
         epochs = m_settings.epochs
         callbacks = m_settings.callbacks
-        history = model.fit(self.transformed_xtrain, self.transformed_ytrain, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1, callbacks=callbacks)
+        # self.transformed_xtrain = np.array(self.transformed_xtrain).reshape()
+        history = model.fit(self.transformed_xtrain, self.transformed_ytrain, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2, callbacks=callbacks)
 
         # 学習したモデルの保存
         if settings.IS_SAVE_MODEL:

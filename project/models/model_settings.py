@@ -45,3 +45,8 @@ class ModelSettings(metaclass=ABCMeta):
     def metrics(self) -> str:
         pass
 
+    @property
+    @abstractmethod
+    def time_step(self) -> int:
+        pass
+

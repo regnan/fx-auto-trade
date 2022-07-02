@@ -8,9 +8,8 @@ from sklearn.preprocessing import MinMaxScaler
 from historicaldata.attribute import Attribute
 from models.models import Models, LearningParam, ResultTypes
 from keras.layers.recurrent import LSTM
-import settings
 
-class HighLowStayModel(Models):
+class HighLowModel(Models):
 
     def generate_learning_param(self, attribute:Attribute) -> LearningParam:
         params = LearningParam()
@@ -32,11 +31,27 @@ class HighLowStayModel(Models):
         params.add(attribute.before5_diff.astype(np.float))
 
         params.add(attribute.bollinger_bands_diff.get(10))
+        params.add(attribute.bollinger_bands_diff.get(11))
+        params.add(attribute.bollinger_bands_diff.get(12))
+        params.add(attribute.bollinger_bands_diff.get(13))
+        params.add(attribute.bollinger_bands_diff.get(14))
         params.add(attribute.bollinger_bands_diff.get(15))
+        params.add(attribute.bollinger_bands_diff.get(16))
+        params.add(attribute.bollinger_bands_diff.get(17))
+        params.add(attribute.bollinger_bands_diff.get(18))
+        params.add(attribute.bollinger_bands_diff.get(19))
         params.add(attribute.bollinger_bands_diff.get(20))
         params.add(attribute.rsi.get(9))
+        params.add(attribute.rsi.get(10))
+        params.add(attribute.rsi.get(11))
+        params.add(attribute.rsi.get(12))
+        params.add(attribute.rsi.get(13))
+        params.add(attribute.rsi.get(14))
         params.add(attribute.rsi.get(15))
         params.add(attribute.sma_diff.get(5))
+        params.add(attribute.sma_diff.get(10))
+        params.add(attribute.sma_diff.get(15))
+        params.add(attribute.sma_diff.get(20))
         params.add(attribute.sma_diff.get(25))
         params.add(attribute.sma_diff.get(50))
         params.add(attribute.macd)
@@ -47,9 +62,8 @@ class HighLowStayModel(Models):
         diff = (attribute.close - attribute.after1_close).astype(np.float)
 
         answers = LearningParam()
-        answers.add((diff <= -0.05).astype(np.int))
-        answers.add(((diff > -0.05) & (diff < 0.05)).astype(np.int))
-        answers.add((diff >= 0.05).astype(np.int))
+        answers.add((diff < 0).astype(np.int))
+        answers.add((diff >= 0).astype(np.int))
         return answers
 
     def generate_learning_model(self, param_count:int) -> Sequential:
@@ -74,7 +88,7 @@ class HighLowStayModel(Models):
         model.add(BatchNormalization())
         model.add(Dense(32, activation='tanh'))
         model.add(BatchNormalization())
-        model.add(Dense(3, activation='softmax'))
+        model.add(Dense(2, activation='softmax'))
 
         adagrad = optimizers.adagrad_v2.Adagrad()
         model.compile(loss='categorical_crossentropy', metrics=[self.model_settings.metrics], optimizer=adagrad)
@@ -87,32 +101,8 @@ class HighLowStayModel(Models):
         return MinMaxScaler(feature_range=(0, 1))
 
     def predict_result(self) -> ndarray:
-        result = np.array([np.argmax(i) for i in self.predictions])
-        y_train = np.delete(self.y_train, slice(len(self.y_train) - len(result)), 0)
-        y_train = np.array([np.argmax(i) for i in y_train])
-        x_train = np.delete(self.x_train, slice(len(self.x_train) - len(result)), 0)
-
-        closeIndex = 3
-        count = 0
-        trueCount = 0
-        tradecount = 0
-        total = 0
-        for i in range(len(result)-1):
-            count = count + 1
-            if(y_train[i] == result[i]):
-                trueCount = trueCount + 1
-            if(y_train[i] == 0):
-                tradecount = tradecount + 1
-                total = total + (x_train[i+1][closeIndex] - x_train[i][closeIndex])
-            if(y_train[i] == 2):
-                tradecount = tradecount + 1
-                total = total + (x_train[i][closeIndex] - x_train[i+1][closeIndex])
-        
-        print('count: ' + str(count))
-        print('trueCount: ' + str(trueCount))
-        print('tradecount: ' + str(tradecount))
-        print('total: ' + str(total))
-
+        train = [np.argmax(i) for i in self.y_train]
+        result = [np.argmax(i) for i in self.predictions]
         return self.predictions
 
     def predict_result_type(self) -> ResultTypes:
@@ -120,13 +110,12 @@ class HighLowStayModel(Models):
         result = self.ytrain_scaler.inverse_transform(self.predictions)
 
         print('up: ' + str(result[-1][0]))
-        print('stay: ' + str(result[-1][1]))
-        print('down: ' + str(result[-1][2]))
-        print('current:' + str(self.x_train[-1][3]))
+        print('down: ' + str(result[-1][1]))
+        print('current:' + str(self.x_train[-1][8]))
 
-        if result[-1][0] > 0.60:
+        if result[-1][0] > 0.40:
             return ResultTypes.BUY
-        elif result[-1][2] > 0.60:
+        elif result[-1][1] > 0.40:
             return ResultTypes.SELL
         else:
             return ResultTypes.STAY

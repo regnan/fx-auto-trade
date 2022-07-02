@@ -3,7 +3,7 @@ from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint, L
 import os
 from models.model_settings import ModelSettings
 
-class RateModelSettings(ModelSettings):
+class HighLowModelSettings(ModelSettings):
 
     def step_decay(epoch):
         x = 0.0000001
@@ -16,7 +16,7 @@ class RateModelSettings(ModelSettings):
 
     @property
     def base_dir(self) -> str:
-        return os.path.join("models", "rate")
+        return os.path.join("models", "highlow")
 
     @property
     def batch_size(self) -> int:
@@ -24,11 +24,11 @@ class RateModelSettings(ModelSettings):
 
     @property
     def epochs(self) -> int:
-        return 5000
+        return 3000
 
     @property
     def callbacks(self) -> list:
-        earlyStopping = EarlyStopping(monitor='loss', min_delta=0.0001, patience=200)
+        earlyStopping = EarlyStopping(monitor='loss', min_delta=0.0001, patience=100)
         checkpoint = ModelCheckpoint(filepath=os.path.join(self.model_current_dir, "model-{epoch:02d}.h5"), monitor='loss', save_best_only=True)
         # reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.9, patience=2, min_delta=0.00001)
         # return [earlyStopping, checkpoint, self.learning_lr, reduce_lr]
@@ -36,9 +36,8 @@ class RateModelSettings(ModelSettings):
     
     @property
     def metrics(self) -> str:
-        return "mean_absolute_error"
+        return "accuracy"
 
     @property
     def time_step(self) -> int:
         return 100
-

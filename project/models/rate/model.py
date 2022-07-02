@@ -8,6 +8,7 @@ from keras.metrics import MeanAbsoluteError
 from sklearn.preprocessing import MinMaxScaler
 from historicaldata.attribute import Attribute
 from models.models import Models, LearningParam, ResultTypes
+from keras.layers.recurrent import LSTM
 
 class RateModel(Models):
 
@@ -29,52 +30,17 @@ class RateModel(Models):
         params.add(attribute.before3_diff.astype(np.float))
         params.add(attribute.before4_diff.astype(np.float))
         params.add(attribute.before5_diff.astype(np.float))
-        # params.add(attribute.before1_close.astype(np.float))
-        # params.add(attribute.before2_close.astype(np.float))
-        # params.add(attribute.before3_close.astype(np.float))
-        # params.add(attribute.before4_close.astype(np.float))
-        # params.add(attribute.before5_close.astype(np.float))
 
-        # params.add(attribute.bollinger_bands.get(10))
-        # params.add(attribute.bollinger_bands.get(11))
-        # params.add(attribute.bollinger_bands.get(12))
-        # params.add(attribute.bollinger_bands.get(13))
-        # params.add(attribute.bollinger_bands.get(14))
-        # params.add(attribute.bollinger_bands.get(15))
-        # params.add(attribute.bollinger_bands.get(16))
-        # params.add(attribute.bollinger_bands.get(17))
-        # params.add(attribute.bollinger_bands.get(18))
-        # params.add(attribute.bollinger_bands.get(19))
-        # params.add(attribute.bollinger_bands.get(20))
         params.add(attribute.bollinger_bands_diff.get(10))
-        # params.add(attribute.bollinger_bands_diff.get(11))
-        # params.add(attribute.bollinger_bands_diff.get(12))
-        # params.add(attribute.bollinger_bands_diff.get(13))
-        # params.add(attribute.bollinger_bands_diff.get(14))
-        # params.add(attribute.bollinger_bands_diff.get(15))
-        # params.add(attribute.bollinger_bands_diff.get(16))
-        # params.add(attribute.bollinger_bands_diff.get(17))
-        # params.add(attribute.bollinger_bands_diff.get(18))
-        # params.add(attribute.bollinger_bands_diff.get(19))
+        params.add(attribute.bollinger_bands_diff.get(15))
         params.add(attribute.bollinger_bands_diff.get(20))
-        # params.add(attribute.rsi.get(10))
-        # params.add(attribute.rsi.get(9))
-        params.add(attribute.rsi.get(10))
-        # params.add(attribute.rsi.get(11))
-        # params.add(attribute.rsi.get(12))
-        # params.add(attribute.rsi.get(13))
-        # params.add(attribute.rsi.get(14))
+        params.add(attribute.rsi.get(9))
         params.add(attribute.rsi.get(15))
-        # params.add(attribute.sma.get(10))
-        # params.add(attribute.sma.get(20))
         params.add(attribute.sma_diff.get(5))
-        params.add(attribute.sma_diff.get(10))
-        # params.add(attribute.sma_diff.get(15))
-        # params.add(attribute.sma_diff.get(20))
         params.add(attribute.sma_diff.get(25))
         params.add(attribute.sma_diff.get(50))
-        # params.add(attribute.macd)
         params.add(attribute.macd)
+        params.add(attribute.trend_line)
         return params
 
     def generate_learning_collect_answer(self, attribute:Attribute) -> LearningParam:
@@ -84,22 +50,25 @@ class RateModel(Models):
 
     def generate_learning_model(self, param_count:int) -> Sequential:
         model = Sequential()
-
-        model.add(Dense(512, activation='tanh', input_shape=(param_count,)))
+        
+        model.add(LSTM(512, batch_input_shape=(None, param_count, self.model_settings.time_step), return_sequences=True))
         model.add(Dropout(0.1))
         model.add(BatchNormalization())
-        # model.add(Dense(1024, activation='tanh'))
-        # model.add(Dropout(0.1))
-        # model.add(BatchNormalization())
-        # model.add(Dense(512, activation='tanh'))
-        # model.add(Dropout(0.1))
-        # model.add(BatchNormalization())
+        model.add(LSTM(256, batch_input_shape=(None, param_count, self.model_settings.time_step), return_sequences=True))
+        model.add(Dropout(0.1))
+        model.add(BatchNormalization())
+        model.add(LSTM(256, batch_input_shape=(None, param_count, self.model_settings.time_step), return_sequences=False))
+        model.add(Dropout(0.1))
+        model.add(BatchNormalization())
         model.add(Dense(256, activation='tanh'))
+        model.add(Dropout(0.1))
+        model.add(Dense(128, activation='tanh'))
         model.add(Dropout(0.1))
         model.add(BatchNormalization())
         model.add(Dense(64, activation='tanh'))
+        model.add(Dropout(0.1))
         model.add(BatchNormalization())
-        model.add(Dense(16, activation='tanh'))
+        model.add(Dense(32, activation='tanh'))
         model.add(BatchNormalization())
         model.add(Dense(1, activation='relu'))
 
@@ -115,29 +84,15 @@ class RateModel(Models):
         return MinMaxScaler(feature_range=(0, 1))
 
     def predict_result(self) -> ndarray:
-        train = self.y_train
         result = self.ytrain_scaler.inverse_transform(self.predictions)
-
-        isOk = np.array(train == result)
-        isNg = (train != result)
-        print(isOk)
-        print(isNg)
-        print(np.count_nonzero(isOk == True))
-        print(np.count_nonzero(isNg == True))
         return result
 
     def predict_result_type(self) -> ResultTypes:
-        train = self.x_train
+        train = np.delete(self.x_train, slice(0, self.model_settings.time_step), 0)
         result = self.ytrain_scaler.inverse_transform(self.predictions)
 
-        isOk = np.array(train == result)
-        isNg = (train != result)
-        print(isOk)
-        print(isNg)
-        print(np.count_nonzero(isOk == True))
-        print(np.count_nonzero(isNg == True))
-
         diff = result[-1] - train[-1][3]
+        print(diff)
         if diff > 0.005:
             return ResultTypes.BUY
         elif diff < -0.005: 
