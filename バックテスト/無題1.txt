@@ -1,0 +1,199 @@
+class TickTrader{
+
+  private:
+    int Time_Flame;
+    double Stop_Range;
+    double Limit_Range;
+    int Magic_Number;
+    datetime Prev_Time;
+    void WriteParam();
+    string RequestMachineLearning();
+    bool ExecOrder(string order_type);
+    void CloseOrder();
+    void CloseOrder(int closeOrderType);
+    void CloseOrder(int closeOrderType, int count);
+    void SendOrder(int orderType);
+		
+  public:
+    void TickTrader(int time_flame, double stopRange, double limitRange, int magicNumber);
+    bool Trade();
+};
+
+  TickTrader::TickTrader(int time_flame, double stopRange, double limitRange, int magicNumber){
+    Time_Flame = time_flame;
+    Stop_Range = stopRange;
+    Limit_Range = limitRange;
+    Prev_Time = iTime(Symbol(), Time_Flame, 1);
+    Magic_Number = magicNumber;
+  }
+	
+  bool TickTrader::Trade(){
+    // 新しい足ができていないときはなにもせずに抜ける  
+    datetime current_time = iTime(Symbol(), Time_Flame, 0);
+    if(current_time == Prev_Time) {
+      return;
+    }
+    Prev_Time = current_time;
+    
+    WriteParam();
+    string result = RequestMachineLearning();
+    ExecOrder(result);
+    
+    Print(GetLastError());
+  }
+  
+  void TickTrader::WriteParam(){
+    Print("FileWriter start");
+    MqlRates rates[];    
+    string fileName = "predict.csv";
+     
+    int size = CopyRates(Symbol(), Time_Flame, 1, 252, rates) ;  
+    string rows[];
+    ArrayResize(rows, size);
+
+    int fileHandle = FileOpen(fileName, FILE_COMMON | FILE_WRITE | FILE_TXT | FILE_CSV, ",");
+
+    for(int i = 0; i < size ; i ++){  
+      string row = StringConcatenate(
+                     TimeToStr( rates[i].time, TIME_DATE | TIME_SECONDS), ',',
+                     rates[i].open, ',',
+                     rates[i].high, ',',
+                     rates[i].low, ',',
+                     rates[i].close, ',',
+                     rates[i].tick_volume, ','
+                   );
+      rows[i] = row;
+      FileWrite(
+        fileHandle,
+        TimeToStr( rates[i].time, TIME_DATE),
+        TimeToStr( rates[i].time, TIME_SECONDS),
+        rates[i].open,
+        rates[i].high,
+        rates[i].low,
+        rates[i].close,
+        rates[i].tick_volume
+      );
+    }
+  
+    FileClose(fileHandle);
+  
+    Print("FileWriter Error:" + GetLastError());
+    Print("FileWriter complete");
+  }
+  
+  string TickTrader::RequestMachineLearning(){
+    string headers;
+    char   post[],result[];
+    string request = "http://localhost:80/ontick/" + IntegerToString(Time_Flame);
+
+    int response = WebRequest("GET", request, NULL, 60000, post, result, headers);
+    if (response != 200) {
+      if (response == -1){
+        Print("Error in WebRequest. Error code  =",GetLastError());
+      }else{
+        PrintFormat("Request failed, error code %d", response);
+      }
+      return;
+    }
+    
+    return CharArrayToString(result);
+  }
+  
+  bool TickTrader::ExecOrder(string result){
+    Print("webrequest:" + result);
+    CloseOrder();
+    
+    if(result == "" || result == NULL){
+      return;
+    }
+    
+    int orderType = result == "True" ? OP_BUY : OP_SELL;
+    int closeOrderType = result == "False" ? OP_BUY : OP_SELL;
+  
+    SendOrder(orderType);
+  }
+  
+  
+  void TickTrader::CloseOrder(){
+    CloseOrder(OP_BUY);
+    CloseOrder(OP_SELL);
+  }
+
+  void TickTrader::CloseOrder(int closeOrderType){
+    CloseOrder(closeOrderType, 0);
+  }
+  
+  void TickTrader::CloseOrder(int closeOrderType, int count){
+    for(int i = OrdersTotal() - 1; i >= 0; i--){
+      OrderSelect(i, SELECT_BY_POS, MODE_TRADES);
+      int magicNumber = OrderMagicNumber();
+      if(magicNumber != Magic_Number){
+        continue;
+      }
+    
+      int ticketNumber = OrderTicket();
+      double lots = OrderLots();
+      int orderType = OrderType();
+    
+      if(orderType == closeOrderType){
+        RefreshRates();
+        double price = orderType == OP_BUY ? Bid : Ask;
+        OrderClose(ticketNumber, lots, price, 0, clrNONE);
+        Sleep(500);
+        
+        if(GetLastError() == ERR_REQUOTE){
+          if(count > 3){
+            return;
+          }
+          CloseOrder(closeOrderType, count + 1);
+        }
+      }
+    }
+  }
+
+  void TickTrader::SendOrder(int orderType){
+    int count = 0;
+    for(int i = OrdersTotal() - 1; i >= 0; i--){
+      OrderSelect(i, SELECT_BY_POS, MODE_TRADES);
+      int magicNumber = OrderMagicNumber();
+      if(magicNumber != Magic_Number){
+        continue;
+      }
+      if(OrderType() == orderType){
+        count++;
+      }
+    }
+  
+    if(count > 10){
+      return;
+    }
+  
+    RefreshRates();
+    double price = orderType == OP_BUY ? Ask: Bid ;
+    double stopLoss = 0;
+    if(Stop_Range != 0){
+      stopLoss = orderType == OP_BUY ? (price - Stop_Range) : (price + Stop_Range);
+    }
+    double profit = 0;
+    if(Limit_Range != 0){
+      profit = orderType == OP_BUY ? (price + Limit_Range) : (price - Limit_Range);
+    }
+    int ticket = OrderSend(Symbol(),orderType, 1, price, 0.02, stopLoss, profit, "test", Magic_Number, 0, clrNONE);
+  }
+  
+  
+//クラスファイルを読み込み
+#include <mylib/MyTrader.mqh>
+
+TickTrader *trader_M15 = new TickTrader(PERIOD_M15, 0, 0, 1);
+//TickTrader *trader_M1 = new TickTrader(PERIOD_M5, Point() * 50, Point() * 100, 1);
+
+void OnInit()
+{
+  trader_M15.Trade();
+}
+
+void OnTick()
+{
+  trader_M15.Trade();
+}
