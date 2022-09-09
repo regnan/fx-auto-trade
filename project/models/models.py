@@ -60,14 +60,14 @@ class Models(metaclass=ABCMeta):
 
         self.transformed_xtrain,self.transformed_ytrain = self.create_dataset(self.transformed_xtrain, self.transformed_ytrain, self.model_settings.time_step)
 
-    def create_dataset(self, dataset,y_t , look_back=1):
+    def create_dataset(self, x, y , look_back=1):
         dataX, dataY = [], []
-        for i in range(len(dataset)-look_back-1):
+        for i in range(len(x)-look_back-1):
             xset = []
-            for j in range(dataset.shape[1]):
-                a = dataset[i:(i+look_back), j]
+            for j in range(x.shape[1]):
+                a = x[i:(i+look_back), j]
                 xset.append(a)
-            dataY.append(y_t[i + look_back])      
+            dataY.append(y[i + look_back])      
             dataX.append(xset)
         return np.array(dataX), np.array(dataY)
 
@@ -114,16 +114,18 @@ class Models(metaclass=ABCMeta):
         print("start learning model generate")
         model = self.generate_learning_model(self.x_train.shape[1])
         print("complete learning model generate")
-
-        # 学習済みモデルの読み込み
-        if settings.IS_LOAD_MODEL:
-            model.load_weights(os.path.join(m_settings.model_dir, "latest.h5"))
-
+        
         batch_size = m_settings.batch_size
         epochs = m_settings.epochs
         callbacks = m_settings.callbacks
+
+        # 学習済みモデルの読み込み
+        if settings.IS_LOAD_MODEL:
+            history = model.fit(self.transformed_xtrain, self.transformed_ytrain, batch_size=batch_size, epochs=1, verbose=1, validation_split=0.1, callbacks=callbacks)
+            model.load_weights(os.path.join(m_settings.model_dir, "latest.h5"))
+
         # self.transformed_xtrain = np.array(self.transformed_xtrain).reshape()
-        history = model.fit(self.transformed_xtrain, self.transformed_ytrain, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2, callbacks=callbacks)
+        history = model.fit(self.transformed_xtrain, self.transformed_ytrain, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1, callbacks=callbacks)
 
         # 学習したモデルの保存
         if settings.IS_SAVE_MODEL:

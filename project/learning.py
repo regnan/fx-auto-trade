@@ -7,7 +7,6 @@ from historicaldata.attribute import Attribute
 from settings import LearningPeriods
 import models.model_loader as model_loader
 import settings
-from tensorflow.python.client import device_lib
 
 def main():
     learningAll()
@@ -17,8 +16,7 @@ def learningAll():
     learning(HistoricalLoader.loadAll())
 
 def learning(historical_data:HistoricalData):
-    time_bar = historical_data.load_time_bar(settings.LEARNING_TimeBarPeriods)
-    attribute = Attribute(time_bar)
+    attribute = Attribute(historical_data)
     model = model_loader.load(attribute, settings.LEARNING_TimeBarPeriods)
     model.learning()
 

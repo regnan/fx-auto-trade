@@ -24,7 +24,7 @@ class HighLowStayModelSettings(ModelSettings):
 
     @property
     def epochs(self) -> int:
-        return 2000
+        return 3000
 
     @property
     def callbacks(self) -> list:

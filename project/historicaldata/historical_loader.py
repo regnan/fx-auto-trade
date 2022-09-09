@@ -3,11 +3,11 @@ import os
 from typing import List
 from historicaldata.historical_data import HistoricalData
 
-ALL_DIRECTORY_PATH = 'files/USDJPY/All'
+ALL_DIRECTORY_PATH = 'files/USDJPY/All/15'
 MONTHLY_DIRECTORY_PATH ='files/USDJPY/Monthly'
 # PREDICT_FILE_PATH = 'files/USDJPY/Predict/predict.csv'
 PREDICT_FILE_PATH = 'C:/Users/rsk85/AppData/Roaming/MetaQuotes/Terminal/Common/Files/predict.csv'
-PREDICT_ALL_FILE_PATH = 'files/USDJPY/Predict'
+PREDICT_ALL_FILE_PATH = 'files/USDJPY/Predict/15'
 
 def loadPredict() -> HistoricalData:
     return HistoricalData(__readFile(PREDICT_FILE_PATH))

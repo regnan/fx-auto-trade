@@ -7,7 +7,7 @@ class ModelTypes(Enum):
     HIGH_LOW = 2
     HIGH_LOW_STAY = 3
     LSTM = 4
-MODEL_TYPE:ModelTypes = ModelTypes.HIGH_LOW_STAY
+MODEL_TYPE:ModelTypes = ModelTypes.RATE
 
 class LearningPeriods(Enum):
     CURRENT = 1

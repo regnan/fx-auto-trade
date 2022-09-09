@@ -24,7 +24,7 @@ class RateModelSettings(ModelSettings):
 
     @property
     def epochs(self) -> int:
-        return 5000
+        return 12
 
     @property
     def callbacks(self) -> list:

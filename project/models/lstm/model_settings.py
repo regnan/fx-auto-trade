@@ -24,7 +24,7 @@ class LSTMModelSettings(ModelSettings):
 
     @property
     def epochs(self) -> int:
-        return 1000
+        return 50000
 
     @property
     def callbacks(self) -> list:

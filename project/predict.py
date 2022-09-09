@@ -14,8 +14,7 @@ def main():
 def predict(timeFrame:int):
     logger.log("predict start")
     historical_data = HistoryLoader.loadPredict()
-    time_bar = historical_data.load_time_bar(TimeBarPeriods(1))
-    attribute = Attribute(time_bar)
+    attribute = Attribute(historical_data)
     model = model_loader.load(attribute, TimeBarPeriods(timeFrame))
     predictions = model.predict()
     result = model.predict_result_type()
@@ -30,8 +29,7 @@ def predict(timeFrame:int):
 def predictAll(timeFrame:int):
     logger.log("predict start")
     historical_data = HistoryLoader.loadPredictAll()
-    time_bar = historical_data.load_time_bar(TimeBarPeriods(timeFrame))
-    attribute = Attribute(time_bar)
+    attribute = Attribute(historical_data)
     model = model_loader.load(attribute, TimeBarPeriods(timeFrame))
     predictions = model.predict()
 
